@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Experiment outputs — regenerate with scripts/make_demos.py and the trainers.
+data/demos/
+data/maps/*.map
+!data/maps/.gitkeep
+
+# Keep history.json so results stay reviewable in diffs, but not the weights.
+# Note the shape: git cannot re-include a file whose PARENT DIRECTORY is
+# excluded, so `runs/` + `!runs/**/history.json` silently tracks nothing.
+# The directories have to stay un-excluded and the files excluded instead.
+runs/**
+!runs/**/
+!runs/**/history.json
+
+# ...but not scratch output. These are pytest fixtures and CPU smoke runs,
+# not results: no claim rests on them and their curves mean nothing.
+runs/_*/
+runs/*smoke*/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Stray probe output, not part of the project.
+amp_points.json

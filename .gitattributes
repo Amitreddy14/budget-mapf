@@ -1,0 +1,23 @@
+# Normalise line endings in the repository. Without this, commits made from
+# Windows git and from a Linux shell on the same working tree disagree about
+# every line of every file.
+* text=auto eol=lf
+
+*.py    text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.ps1   text eol=crlf
+
+# Binary: never diff, never normalise.
+*.pt    binary
+*.pth   binary
+*.npz   binary
+*.npy   binary
+*.png   binary
+*.jpg   binary
+*.gif   binary
+*.docx  binary
+*.pdf   binary
+*.map   binary

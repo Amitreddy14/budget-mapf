@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "BUDGET-MAPF: learned communication in decentralised Multi-Agent Path Finding"
+abstract: >-
+  A controlled study of learned inter-agent communication for decentralised
+  MAPF. A shuffled-message control holds the communication module, its
+  parameter count and its compute fixed while destroying the correspondence
+  between sender and message, separating the value of the information from
+  the capacity of the module.
+authors:
+  - family-names: "Geetha Jenifel"
+    given-names: M.
+    affiliation: "Department of Data Science and Business Systems, SRM Institute of Science and Technology, Chennai"
+  - family-names: Reddy
+    given-names: Amit
+    affiliation: "Department of Data Science and Business Systems, SRM Institute of Science and Technology, Chennai"
+  - family-names: K
+    given-names: Abhiraami
+    affiliation: "Department of Data Science and Business Systems, SRM Institute of Science and Technology, Chennai"
+  - family-names: CH
+    given-names: Nandana
+    affiliation: "Department of Data Science and Business Systems, SRM Institute of Science and Technology, Chennai"
+license: MIT
+repository-code: "https://github.com/Amitreddy14/budget-mapf"

@@ -1,0 +1,56 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  fast:
+    name: fast tests (CPU)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # CPU wheels explicitly: requirements.txt asks for torch>=2.3, which
+      # otherwise pulls the CUDA build and several GB of nvidia-* packages.
+      - name: Install torch (CPU)
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # The suite imports torch at module scope on purpose: on a machine
+      # without it the run must ERROR, not quietly collect zero tests and
+      # report success. This step is what makes that guarantee worth having.
+      - name: Collect
+        run: python -m pytest tests/ --collect-only -q | tail -3
+
+      - name: Fast tests
+        run: python -m pytest tests/ -q -m "not slow"
+
+  slow:
+    name: trainer smoke runs (CPU)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Short end-to-end training runs. They are the only check on the
+    # recurrent off-policy wiring, which type-checks piece by piece and
+    # still fails when assembled. Not on every push: slower, and nothing
+    # below them depends on a green light to keep working.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r requirements.txt
+      - run: python -m pytest tests/ -q -m slow
