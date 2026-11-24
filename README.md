@@ -36,9 +36,12 @@ measures the module. The gap between the two is the finding.
 |---|---|---|---|
 | full vs shuffled | p = 0.694 | p = 0.817 | p = 0.689 |
 
-Across five behaviour-cloning regimes (random 9x9 and 5x5 fields, coarse
-heuristic, no heuristic, rooms), the mean effect of correct addressing is
-**−0.02%**, with no consistent sign.
+Across eight readings (random 9x9 and 5x5 fields, coarse heuristic, no
+heuristic, rooms, and 12-agent mazes), the mean effect of correct addressing
+is **+0.36%** of the no-communication error, inside the ±2.3% scatter of the
+individual readings. The five-seed maze test (§21) returned NULL under its
+pre-registered rule: full − shuffled = +1.3 points on-goal, 95% CI
+[−2.2, +4.7]. That does not prove zero, but the offline metric is tightly null.
 
 ## Headline numbers
 
@@ -104,6 +107,8 @@ including:
   that failure was a planning horizon sized for random grids (192) applied to
   a map with 432-step shortest paths. Prioritised planning solves mazes at 12
   agents and fails at 16
+- §21 seeded maze test: a single-seed 5-point gap regressed to +1.3 points
+  (CI [−2.2, +4.7]) at five seeds; the module's +12 points is capacity
 - §20 QMIX: a reward-function freeze attractor, and why a behaviour-cloned
   policy head cannot initialise a Q-function
 

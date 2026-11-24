@@ -96,6 +96,31 @@ is how much of that survives scrambling the addressing. **Mean `vs shuf`
 = −0.02%, no consistent sign.** The `closed` column is capacity, not
 information — which is exactly what the shuffled control exists to show.
 
+### 2b. Does the closed-loop gap survive seeds?  --  about 8 min per run
+
+At 12 agents the three structure regimes give offline `vs shuf` of +0.8% /
++0.8% / +1.4%, all inside the earlier scatter. The maze closed-loop result is
+the exception: `full` over `shuffled` by about 5pp on-goal, from one seed per
+arm, with the offline metric showing almost nothing. One seed cannot separate
+a real gap from epoch-to-epoch noise (shuffled-maze on-goal ranged 0.22 to
+0.55 across epochs of one run).
+
+```powershell
+python scripts\headroom_seeds.py --demos data\demos\a12maze --seeds 0 1 2 3 4
+python scripts\headroom_seeds.py --demos data\demos\a12maze --report-only
+```
+
+Resumable: a run counts as complete once its history has all epochs, so the
+command can be interrupted and re-run. Seed 0 reuses `runs/headroom/` from
+the first pass (same config, default seed), leaving 12 runs.
+
+The decision rule is in the script's docstring and was written before any
+multi-seed result existed. Primary comparison: `full - shuffled`, closed-loop
+on-goal, last 4 epochs per run, Welch across 5 seeds, alpha 0.05. The offline
+error must agree in sign, or the result is reported as unconfirmed. Maze
+demos come only from instances the expert solved (141 of 320), so any
+result applies to that easier half.
+
 ---
 
 ## 3. Reinforcement learning  —  the headline  —  hours per arm

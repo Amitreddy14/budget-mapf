@@ -1040,3 +1040,38 @@ on-goal would manufacture a null, not measure one.
 Option 2 (regress Q onto Monte-Carlo returns of the frozen BC policy before
 Q-learning) remains the one untried repair with a principled case. It is not
 cheap and nothing above depends on it.
+
+## 21. Mazes at 12 agents, five seeds: the single-seed gap does not hold
+
+`scripts/headroom_seeds.py`, preset `a12maze` (12 agents, 41x41 maze, 768
+steps, CBS/prioritised-planning demos). Five seeds per arm. The decision rule
+was fixed before the run: primary metric is `full - shuffled` on closed-loop
+on-goal (mean of the last 4 epochs per run, Welch across seeds, alpha 0.05);
+the offline error must agree in sign; at least 5 seeds.
+
+| arm | on-goal | success | coll/step | offline err |
+|---|---|---|---|---|
+| none | 0.3933 +- 0.0104 | 0.0242 +- 0.0035 | 0.9434 +- 0.0937 | 0.0104 +- 0.0003 |
+| shuffled | 0.5157 +- 0.0149 | 0.1253 +- 0.0106 | 0.8385 +- 0.1423 | 0.0071 +- 0.0004 |
+| full | 0.5284 +- 0.0281 | 0.1370 +- 0.0225 | 0.7532 +- 0.1710 | 0.0070 +- 0.0004 |
+
+**Primary, full - shuffled, on-goal: +0.0127** (Welch p = 0.407, d = +0.56,
+95% CI [-0.0220, +0.0473]). Offline error: -0.0000, p = 0.880, CI
+[-0.0007, +0.0006]. Collisions (exploratory): -0.0853, CI [-0.3160, +0.1455].
+**Verdict under the pre-registered rule: NULL.**
+
+What this does and does not say:
+
+- The single-seed maze gap of about 5 points shrank to +1.3 points at five
+  seeds. This is the same pattern as the earlier regressions (§2, §3).
+- It is not a proof of zero. The CI still admits a gap up to about +4.7
+  points. At the observed d = 0.56, about 50 seeds per arm would be needed for
+  80% power. The offline metric, in contrast, is tightly null.
+- **Capacity effect.** shuffled - none is +0.1224 on-goal (CI [+0.1033,
+  +0.1416]). The communication module helps by about 12 points even when its
+  messages are scrambled. That is the module's parameters and compute, not
+  information. This is the same decomposition as the main study.
+- Tally of `full vs shuffled` readings (as a share of the no-comm error): the
+  five earlier regimes (-2.3, -0.5, +0.6, -0.2, +2.3; mean -0.02%) plus the
+  three 12-agent readings (+0.8, +0.8, +1.4) give eight readings, mean about
+  +0.36%, all inside the earlier +-2.3% scatter.
