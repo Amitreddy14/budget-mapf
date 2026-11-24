@@ -41,10 +41,35 @@ python scripts\make_demos.py a64h20                                    # needs ~
 `a64h20` was killed by the OOM killer in a 3GB container and took 137s on a
 16GB machine. Generate it locally.
 
-**Mazes are not in this list and cannot be.** `--map-kind maze` generates
-fine, but prioritised planning fails 3 of 6 instances with *two* agents:
-94.9% of maze free cells have degree <= 2 and permanently-reserved goal cells
-sever corridors. No expert, no demonstrations. See `FINDINGS-phase6b.md` §19.
+**Mazes need their own horizon.** The `a12maze` preset carries
+`max_steps=768` and 20 restarts; `a16maze` exists but no planner solves it.
+A horizon sized for a random grid (192) makes most maze instances unsolvable
+for any planner, which is what the original "mazes cannot be demonstrated"
+reading actually measured -- see `FINDINGS-phase6b.md` §19.1.
+
+```powershell
+python scripts\make_demos.py a12maze        # 12 agents, 41x41 maze
+python scripts\make_demos.py a12room        # same agent count, rooms
+python scripts\make_demos.py a12h20         # same agent count, random grid
+```
+
+Those three hold agent count fixed across map kinds, which is the comparison
+the structure study needs.
+
+| agents | prioritised planning on 41x41 mazes |
+|---|---|
+| 2, 4 | 6/6 |
+| 8 | 4/6 |
+| 12 | 3/3 (20 restarts) |
+| 16 | 0/3 |
+
+```powershell
+python scripts\bench_planner.py --kinds maze --agents 2 4 8 --scenarios 6
+```
+
+CBS (`experts/cbs.py`) is complete and optimal for sum-of-costs and solves
+corridor instances prioritised planning cannot, but it is the weaker option
+on mazes: 0.05s at 2 agents, timing out at 4.
 
 ---
 

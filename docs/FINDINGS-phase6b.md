@@ -787,7 +787,9 @@ property of the goal assignment rather than of the ordering.
 This is worth stating plainly, because it is a limitation of the paradigm and
 not of our implementation. **The regime in which communication ought to
 matter most is the regime in which a prioritised-planning expert cannot
-produce demonstrations at all**, and imitation-bootstrapped methods in the
+produce demonstrations at all** [SUPERSEDED -- see 19.1: true at 16 agents,
+false at 12 and below, and the 16-agent figure was measured under a horizon
+too short for the map], and imitation-bootstrapped methods in the
 PRIMAL line therefore cannot be evaluated there without a complete solver
 such as conflict-based search. A decentralised learned policy could in
 principle handle a maze, since it can back out of a corridor and yield, but
@@ -796,6 +798,68 @@ there is no expert to clone from.
 Rooms are the structured regime that remains testable, and they are the
 sensible next measurement: doorway bottlenecks concentrate exactly the
 head-on conflicts that an intent message is supposed to resolve.
+
+### 19.1 CORRECTION: most of that failure was the horizon, not the paradigm
+
+The reading above is wrong, and the error is mine. `scripts/make_demos.py`
+passed `max_steps=192` for every preset, and `experts/generate.py` hands that
+straight to the planner as `max_t`. Maze shortest paths on 41x41 run to **432
+steps** -- a corridor cannot be cut across, so distances are several times
+those of a random grid with the same free-cell count. **Most maze instances
+were unsolvable by construction, for any planner.** The table in section 19
+measured a horizon, not prioritised planning.
+
+Re-measured, same generator, same seeds, 6 scenarios per cell:
+
+| agents | longest shortest-path | solved @ `max_t=192` | solved @ sized horizon |
+|---|---|---|---|
+| 2 | 312 | 3/6 | **6/6** |
+| 4 | 351 | 0/6 | **6/6** |
+| 8 | 419 | 0/6 | **4/6** |
+| 16 | 432 | 0/6 | 0/6 |
+
+The `max_t=192` column reproduces section 19 to within sampling noise, which
+is what makes the diagnosis safe. With a horizon sized from the instance
+(`2 x longest + 8N + 16`), prioritised planning solves **every** maze instance
+at 2 and 4 agents.
+
+Pushing on the upper end, 3 scenarios, 20 restarts:
+
+| agents | solved | time |
+|---|---|---|
+| 12 | **3/3** | 1s |
+| 16 | 0/3 | 45s |
+
+So the boundary sits between 12 and 16 agents, and only there does the
+structural argument of section 19 -- permanently reserved goals severing
+degree-2 corridors -- actually bite. The degree distribution is still correct;
+the conclusion drawn from it was reached about three agent counts too early.
+
+**What stands and what does not:**
+
+- *Not true*: "mazes cannot be demonstrated", "a limitation of the paradigm
+  and not of our implementation", "there is no expert to clone from". At
+  12 agents and below there is.
+- *Still true*: prioritised planning fails mazes at 16 agents, where the
+  original study's agent count sat, and raising restarts does not fix it.
+- *New*: mazes are testable at 12 agents. Fixed presets `a12maze`, `a12room`
+  and `a12h20` hold agent count constant across map kinds, which is the
+  comparison the structure study needs.
+
+CBS (`experts/cbs.py`) was built to remove this blocker and is not what
+removed it. It solves the 2-agent maze in 0.05s and times out at 4 agents
+within 8s: long horizons make the constraint tree expensive, so it is the
+weaker option here. It stays for what it is good at -- it is complete and
+optimal for sum-of-costs, it solves corridor instances prioritised planning
+cannot (`tests/test_cbs.py`), and it is the fallback when an ordering fails.
+
+**The lesson generalises past mazes.** A shared default sized for one regime
+became a silent constraint in another, and the failure it produced was read as
+a property of the algorithm. This is the fourth time in this project that a
+measurement artefact was mistaken for a result -- after final-eval reporting
+(section 2), iteration-0 contamination, and the density mismatch between two
+ablation scripts. The pattern each time: a number that looked like a finding,
+and a default nobody had re-derived for the new regime.
 
 ### Rooms: the eighth null
 

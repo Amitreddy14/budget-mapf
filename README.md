@@ -100,9 +100,10 @@ including:
 
 - §2 why "final evaluation only" reporting invented effects that did not exist
 - §3 how Phase 5's headline shrank from −25% to −4% under the same data
-- §19 why mazes cannot be demonstrated at all: 94.9% of free cells have
-  degree <= 2 and permanently-reserved goals sever corridors, so the expert
-  fails 3 of 6 instances with two agents
+- §19 / §19.1 mazes: first read as undemonstrable, then corrected. Most of
+  that failure was a planning horizon sized for random grids (192) applied to
+  a map with 432-step shortest paths. Prioritised planning solves mazes at 12
+  agents and fails at 16
 - §20 QMIX: a reward-function freeze attractor, and why a behaviour-cloned
   policy head cannot initialise a Q-function
 
@@ -111,8 +112,9 @@ including:
 - The communication result rests on **one learning rule** (MAPPO). QMIX was
   built and run; `docs/FINDINGS-phase6b.md` §20 is the measured reason it
   cannot carry an ablation here.
-- Mazes are untested by necessity, not choice (§19). That is the regime where
-  communication should matter most.
+- The communication study was run on random grids and rooms. Mazes are
+  demonstrable at 12 agents (§19.1) but were not part of the measurements
+  above; at 16 agents, where the study sits, no expert solves them.
 - Episode truncation is treated as termination (`done = solved | timeout`).
   The env auto-resets inside `step()` and does not expose the pre-reset
   observation, so bootstrapping through the time limit would use the *next*

@@ -34,8 +34,23 @@ PRESETS = {
     # open grid lets agents route around.
     "a16room": dict(n_agents=16, size=32, density=0.20, samples=600_000, hide=True,
                     kind="room", room_size=6),
+    # Mazes need a far longer horizon than a random grid of the same free-cell
+    # count: shortest paths here run to 432 steps against about 60 on the
+    # random grid, because a corridor cannot be cut across. A horizon of 192
+    # made most maze instances unsolvable for ANY planner, which is what the
+    # original "prioritised planning cannot demonstrate mazes" reading
+    # actually measured. See docs/FINDINGS-phase6b.md section 19.1.
     "a16maze": dict(n_agents=16, size=41, density=0.20, samples=600_000, hide=True,
-                    kind="maze"),
+                    kind="maze", max_steps=768),
+    # 12 agents is where prioritised planning still succeeds on mazes
+    # (3/3 with 20 restarts, against 0/3 at 16). Agent density 0.0150 per free
+    # cell, below a16h20's 0.0197 -- the comparison that holds structure fixed
+    # is a12 on each map kind, not a16.
+    "a12maze": dict(n_agents=12, size=41, density=0.20, samples=600_000, hide=True,
+                    kind="maze", max_steps=768, restarts=20),
+    "a12h20":  dict(n_agents=12, size=32, density=0.20, samples=600_000, hide=True),
+    "a12room": dict(n_agents=12, size=32, density=0.20, samples=600_000, hide=True,
+                    kind="room", room_size=6),
 }
 
 if __name__ == "__main__":
@@ -57,6 +72,14 @@ if __name__ == "__main__":
     ap.add_argument("--fov", type=int, default=9,
                     help="observation window. Smaller windows remove the local\n                         information that currently makes the expert action\n                         98%% predictable without any communication.")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--max-steps", type=int, default=0,
+                    help="0 = the preset's own horizon. Mazes need ~768; a "
+                         "horizon sized for a random grid makes most maze "
+                         "instances unsolvable for any planner.")
+    ap.add_argument("--restarts", type=int, default=0,
+                    help="0 = the preset's own value (6, or 20 for mazes). "
+                         "Prioritised planning is incomplete, so a harder map "
+                         "needs more reshuffled orderings.")
     ap.add_argument("--num-envs", type=int, default=32)
     ap.add_argument("--samples", type=int, default=None)
     ap.add_argument("--hide-peer-goals", action="store_true",
@@ -81,7 +104,8 @@ if __name__ == "__main__":
     else:
         map_spec = {"kind": "maze", "height": size, "width": size}
     cfg = MAPFConfig(
-        n_agents=p["n_agents"], max_steps=192, map_pool_size=512, fov=args.fov,
+        n_agents=p["n_agents"], max_steps=args.max_steps or p.get("max_steps", 192),
+        map_pool_size=512, fov=args.fov,
         obs_costmap=args.obs_costmap,
         observe_peer_goals=not hide,
         map_spec=map_spec,
@@ -91,5 +115,6 @@ if __name__ == "__main__":
           f"costmap={args.obs_costmap}, "
           f"peer_goals={'hidden' if hide else 'visible'}")
     meta = generate(cfg, args.samples or p["samples"], out,
-                    seed=args.seed, num_envs=args.num_envs)
+                    seed=args.seed, num_envs=args.num_envs,
+                    restarts=args.restarts or p.get("restarts", 6))
     print(json.dumps(meta, indent=2))
