@@ -116,8 +116,16 @@ def compare(got, a_arm, b_arm, key):
             "n_for_80pc_power": r["n_for_80pc_power"]}
 
 
-def verdict(got, min_seeds=5):
-    """Apply the pre-registered rule to full vs shuffled."""
+GATE = (0.15, 0.85)
+
+
+def verdict(got, min_seeds=5, gate=GATE):
+    """Apply the pre-registered rule to full vs shuffled.
+
+    The measurability gate (docs/PREREG-fov-sweep.md) comes first: if the
+    no-communication arm sits at the floor or the ceiling, a message gap could
+    not have shown, so a comparison is not a result and is not reported as one.
+    """
     on = compare(got, "shuffled", "full", "on_goal")
     er = compare(got, "shuffled", "full", "err")
     if on is None or er is None:
@@ -125,6 +133,13 @@ def verdict(got, min_seeds=5):
     if min(on["n_a"], on["n_b"]) < min_seeds:
         return (f"UNDERPOWERED -- {min(on['n_a'], on['n_b'])} seeds per arm, rule "
                 f"needs {min_seeds}. Do not read the p-value as a result.")
+    none_on = [r["on_goal"] for r in got["none"]]
+    if none_on:
+        m = sum(none_on) / len(none_on)
+        if not (gate[0] <= m <= gate[1]):
+            return (f"UNMEASURABLE -- the none arm's on-goal is {m:.4f}, outside the "
+                    f"gate [{gate[0]}, {gate[1]}]. No verdict; the setting cannot "
+                    f"show a message effect either way.")
     if on["p"] >= 0.05:
         return (f"NULL -- full vs shuffled on-goal {on['delta']:+.4f}, "
                 f"p={on['p']:.3f}. Correct addressing is not detectably better.")

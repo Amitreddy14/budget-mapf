@@ -122,6 +122,26 @@ def test_a_single_seed_cannot_be_tested(tmp_path):
     assert hs.verdict(got).startswith("INCOMPLETE")
 
 
+def test_none_arm_at_the_floor_is_unmeasurable_not_null(tmp_path):
+    """fov 3 and fov 5 without a distance map: none arm ~0.05, nothing solved.
+    The script printed NULL for both, which read as a finding."""
+    got = _fill(tmp_path, "t", {"none": (0.05, 0.99), "shuffled": (0.03, 0.99),
+                                "full": (0.035, 0.99)}, noise=0.003)
+    assert hs.verdict(got).startswith("UNMEASURABLE")
+
+
+def test_none_arm_at_the_ceiling_is_unmeasurable(tmp_path):
+    got = _fill(tmp_path, "t", {"none": (0.95, 0.99), "shuffled": (0.96, 0.99),
+                                "full": (0.96, 0.99)})
+    assert hs.verdict(got).startswith("UNMEASURABLE")
+
+
+def test_gate_does_not_hide_a_measurable_null(tmp_path):
+    got = _fill(tmp_path, "t", {"none": (0.2, 0.99), "shuffled": (0.3, 0.99),
+                                "full": (0.3, 0.99)})
+    assert hs.verdict(got).startswith("NULL")
+
+
 def test_report_prints_without_error(tmp_path, capsys):
     got = _fill(tmp_path, "t", {"none": (0.4, 0.99), "shuffled": (0.5, 0.99),
                                 "full": (0.55, 0.995)})
